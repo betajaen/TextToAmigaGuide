@@ -113,7 +113,7 @@ namespace TextToAmigaGuide
         {
             sb.Length = 0;
 
-            int isOpen = -1;
+            int isOpen = 0;
             bool lastSpace = true;
             bool escapeNext = false;
             foreach (var ch in line)
@@ -142,15 +142,19 @@ namespace TextToAmigaGuide
 
                 if (ch == pattern)
                 {
-                    if (isOpen == 1)
+                    if (isOpen == 0 && lastSpace)
+                    {
+                        isOpen = 1;
+                        sb.Append(start);
+                    }
+                    else if (isOpen == 1)
                     {
                         isOpen = 0;
                         sb.Append(end);
                     }
-                    else if (lastSpace)
+                    else
                     {
-                        isOpen = 1;
-                        sb.Append(start);
+                        sb.Append(ch);
                     }
 
                     lastSpace = false;
@@ -161,7 +165,7 @@ namespace TextToAmigaGuide
                 lastSpace = (ch == ' ');
             }
 
-            if (isOpen != -1)
+            if (isOpen == 1)
             {
                 sb.Append(end);
             }
@@ -175,6 +179,7 @@ namespace TextToAmigaGuide
 
             int isOpen = 0;
             bool escapeNext = false;
+            bool lastSpace = true;
             foreach (var ch in line)
             {
                 if (ch == '^')
@@ -199,10 +204,11 @@ namespace TextToAmigaGuide
                     continue;
                 }
 
-                if (ch == '[' && isOpen == 0)
+                if (lastSpace && ch == '[' && isOpen == 0)
                 {
                     sb.Append("@{\"");
                     isOpen = 1;
+                    lastSpace = true;
                     continue;
                 }
                 else if (ch == ']' && isOpen == 1)
@@ -222,8 +228,10 @@ namespace TextToAmigaGuide
                     isOpen = 0;
                     continue;
                 }
+                
 
                 sb.Append(ch);
+                lastSpace = (ch == ' ');
             }
 
             return sb.ToString();
